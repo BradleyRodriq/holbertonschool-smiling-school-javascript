@@ -259,62 +259,92 @@ $(document).ready(
          * 'data' is assumed to be the response to a GET request to
          * 'https://smileschool-api.hbtn.info/courses'.
          */
-        function displayVideoResults (data) {
-            /* load course videos results */
+        function displayVideoResults(data) {
+            /* Load course videos results */
 
-            /*
-            update GUI to indicate that
-            the browser is done waiting for request to finish
-            */
-            $('section.results .row .loader').remove();
+            // Remove loader if exists
+            const loader = $('section.results .row .loader');
+            if (loader.length) {
+                loader.remove();
+            }
 
+            // Update video count
+            let videoCountSpan = $('span#videoCount'); // Assuming there's a span with this ID
             let videoCountSpanText = `${data.courses.length} video`;
 
-            // '0 videos', '1 video', '2 videos'
             if (data.courses.length !== 1) {
-                videoCountSpanText = videoCountSpanText + 's';
+                videoCountSpanText += 's';
             }
 
             videoCountSpan.text(videoCountSpanText);
 
-            /* append video cards to the DOM */
+            /* Append video cards to the DOM */
+            const carouselInner = $('.carousel-inner'); // Target the carousel inner
+            carouselInner.empty(); // Clear existing items if any
+
+            // Create a variable to keep track of the current group of videos
+            let itemGroup = $('<div class="carousel-item">').append(
+                $('<div class="row">') // Use a row to group 4 cards
+            );
+            let cardCount = 0;
+
             for (const videoCardData of data.courses) {
                 const videoCardStars = HTMLStars(videoCardData.star);
 
-                const videoCard =
-                    $('<div class="col-12 col-sm-4 col-lg-3 d-flex justify-content-center">').append(
-                        $('<div class="card">').append(
-                            $(`<img src="${videoCardData.thumb_url}" class="card-img-top" alt="Video thumbnail">`),
-                            $('<div class="card-img-overlay text-center">').append(
-                                $('<img src="images/play.png" alt="Play" width="64px" class="align-self-center play-overlay">')
+                const videoCard = $('<div class="col-12 col-sm-6 col-lg-3 d-flex justify-content-center">').append(
+                    $('<div class="card">').append(
+                        $(`<img src="${videoCardData.thumb_url}" class="card-img-top" alt="Video thumbnail">`),
+                        $('<div class="card-img-overlay text-center">').append(
+                            $('<img src="images/play.png" alt="Play" width="64px" class="align-self-center play-overlay">')
+                        ),
+                        $('<div class="card-body">').append(
+                            $(`<h5 class="card-title font-weight-bold">${videoCardData.title}</h5>`),
+                            $('<p class="card-text text-muted">').text(
+                                'Lorem ipsum dolor sit amet, consect adipiscing elit, sed do eiusmod.'
                             ),
-                            $('<div class="card-body">').append(
-                                $(`<h5 class="card-title font-weight-bold">${videoCardData.title}</h5>`),
-                                $('<p class="card-text text-muted">').text(
-                                    'Lorem ipsum dolor sit amet, consect adipiscing elit, sed do eiusmod.'
+                            $('<div class="creator d-flex align-items-center">').append(
+                                $(`<img src="${videoCardData.author_pic_url}" alt="${videoCardData.author}, creator of video" width="30px" class="rounded-circle">`),
+                                $('<h6 class="pl-3 m-0 main-color">').text(
+                                    videoCardData.author
+                                )
+                            ),
+                            $('<div class="info pt-3 d-flex justify-content-between">').append(
+                                $('<div class="rating">').append(
+                                    videoCardStars
                                 ),
-                                $('<div class="creator d-flex align-items-center">').append(
-                                    $(`<img src="${videoCardData.author_pic_url}" alt="${videoCardData.author}, creator of video" width="30px" class="rounded-circle">`),
-                                    $('<h6 class="pl-3 m-0 main-color">').text(
-                                        videoCardData.author
-                                    )
-                                ),
-                                $('<div class="info pt-3 d-flex justify-content-between">').append(
-                                    $('<div class="rating">').append(
-                                        videoCardStars
-                                    ),
-                                    $('<span class="main-color">').text(
-                                        videoCardData.duration
-                                    )
+                                $('<span class="main-color">').text(
+                                    videoCardData.duration
                                 )
                             )
                         )
                     )
-                ;
+                );
 
-                coursesDiv.append(videoCard);
+                // Add the video card to the current item group
+                itemGroup.find('.row').append(videoCard);
+                cardCount++;
+
+                // If we've added 4 cards, finalize this carousel item and start a new one
+                if (cardCount === 4) {
+                    // Set the first item group as active
+                    if (carouselInner.children().length === 0) {
+                        itemGroup.addClass('active');
+                    }
+                    carouselInner.append(itemGroup);
+                    // Reset for the next group
+                    itemGroup = $('<div class="carousel-item">').append(
+                        $('<div class="row">')
+                    );
+                    cardCount = 0; // Reset card count
+                }
+            }
+
+            // Append any remaining cards that didn't fill a complete group
+            if (cardCount > 0) {
+                carouselInner.append(itemGroup);
             }
         }
+
 
         /**
          * Sends a GET request to 'https://smileschool-api.hbtn.info/courses',
