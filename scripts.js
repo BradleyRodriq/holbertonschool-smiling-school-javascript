@@ -95,62 +95,74 @@ $(document).ready(
         );
 
         /* load videos */
-        $.ajax(
-            {
-                url: 'https://smileschool-api.hbtn.info/popular-tutorials',
-                method: 'GET',
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log("Error loading videos: " + errorThrown);
-                },
-                success: function (videosData, textStatus, jqXHR) {
-                    $('#carouselExampleControls2 .loader').remove();
+        $.ajax({
+            url: 'https://smileschool-api.hbtn.info/popular-tutorials',
+            method: 'GET',
+            error: function (jqXHR, textStatus, errorThrown) {
+              console.log("Error loading videos: " + errorThrown);
+            },
+            success: function (videosData, textStatus, jqXHR) {
+              // Remove loader after successful data fetch
+              $('#carouselExampleControls2 .loader').remove();
 
-                    for (const videoCardData of videosData) {
+              // Define the container for carousel items
+              const popularVideosCarousel = $('#carouselExampleControls2 .carousel-inner');
 
-                        const videoRatingStars = HTMLStars(videoCardData.star);
+              // Number of cards per carousel slide
+              const cardsPerSlide = 4;
 
-                        const videoCarouselItem = $('<div class="carousel-item col-12 col-sm-6 col-md-6 col-lg-3 d-flex">').append(
-                            $('<div>').append(
-                                $('<div class="card">').append(
-                                    $(`<img src="${videoCardData.thumb_url}" class="card-img-top" alt="Video thumbnail"/>`),
-                                    $('<div class="card-img-overlay text-center">').append(
-                                        $('<img src="images/play.png" alt="Play" width="64px" class="align-self-center play-overlay"/>')
-                                    ),
-                                    $('<div class="card-body">').append(
-                                        $('<h5 class="card-title font-weight-bold">').text(
-                                            videoCardData.title
-                                        ),
-                                        $('<p class="card-text text-muted">').text(
-                                            videoCardData["sub-title"]
-                                        ),
-                                        $('<div class="creator d-flex align-items-center">').append(
-                                            $(`<img src="${videoCardData.author_pic_url}" alt="the creator of this video, whose name is ${videoCardData.author}" width="30px" class="rounded-circle"/>`)
-                                        ),
-                                        $('<h6 class="pl-3 m-0 main-color">').text(
-                                            videoCardData.author
-                                        )
-                                    ),
-                                    $('<div class="info pt-3 d-flex justify-content-between">').append(
-                                        $('<div class="rating">').append(
-                                            videoRatingStars
-                                        ),
-                                        $('<span class="main-color">').text(
-                                            videoCardData.duration
-                                        )
-                                    )
-                                )
-                            )
-                        );
+              // Create grouped carousel items
+              for (let i = 0; i < videosData.length; i += cardsPerSlide) {
+                // Create a new carousel item div
+                const videoCarouselItem = $('<div class="carousel-item">');
 
-                        if (videoCardData.id <= 4) {
-                            videoCarouselItem.addClass('active');
-                        }
-
-                        popularVideosCarousel.append(videoCarouselItem);
-                    }
+                // Add the 'active' class only to the first item
+                if (i === 0) {
+                  videoCarouselItem.addClass('active');
                 }
+
+                // Create a row for the cards in this carousel item
+                const cardRow = $('<div class="row">');
+
+                // Loop through a set of cards for this slide
+                videosData.slice(i, i + cardsPerSlide).forEach(videoCardData => {
+                  const videoRatingStars = HTMLStars(videoCardData.star);
+
+                  // Create the card structure
+                  const videoCard = $('<div class="col-12 col-sm-6 col-md-6 col-lg-3 d-flex">').append(
+                    $('<div class="card">').append(
+                      $(`<img src="${videoCardData.thumb_url}" class="card-img-top" alt="Video thumbnail"/>`),
+                      $('<div class="card-img-overlay text-center">').append(
+                        $('<img src="images/play.png" alt="Play" width="64px" class="align-self-center play-overlay"/>')
+                      ),
+                      $('<div class="card-body">').append(
+                        $('<h5 class="card-title font-weight-bold">').text(videoCardData.title),
+                        $('<p class="card-text text-muted">').text(videoCardData["sub-title"]),
+                        $('<div class="creator d-flex align-items-center">').append(
+                          $(`<img src="${videoCardData.author_pic_url}" alt="the creator of this video, whose name is ${videoCardData.author}" width="30px" class="rounded-circle"/>`)
+                        ),
+                        $('<h6 class="pl-3 m-0 main-color">').text(videoCardData.author)
+                      ),
+                      $('<div class="info pt-3 d-flex justify-content-between">').append(
+                        $('<div class="rating">').append(videoRatingStars),
+                        $('<span class="main-color">').text(videoCardData.duration)
+                      )
+                    )
+                  );
+
+                  // Append the card to the row
+                  cardRow.append(videoCard);
+                });
+
+                // Append the row of cards to the carousel item
+                videoCarouselItem.append(cardRow);
+
+                // Append the carousel item to the carousel inner container
+                popularVideosCarousel.append(videoCarouselItem);
+              }
             }
-        );
+          });
+
 
         /* Code for loading the courses videos */
         const keywordsSearchbar = $('input[type=text]');
